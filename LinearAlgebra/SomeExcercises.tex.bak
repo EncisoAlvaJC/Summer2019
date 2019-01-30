@@ -1,0 +1,31 @@
+\documentclass[10pt,letterpaper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{nicefrac}
+
+\title{Some excercises on matrices}
+\author{}
+\date{}
+
+\begin{document}
+
+\begin{enumerate}
+\item A sausage factory uses two machines for food processing:
+% each one with differnt characteristics.
+the machine A can process 3 Tonne (2 T) of meat in 1 hour, while the machine B can process 5 T of meat on the same time.
+The goal is to process a total of 11 Tonnes on a lapse of 3 hours; to better coordinate the supply chain, both machines should end their processing at the same time.
+How much meat should process each machine?
+
+%\textit{Note:} Suppose the processing times are proportional to the total processed meat, i.e. machine A will process $\nicefrac{1}{2}$ T of meat in 1 hour, $\nicefrac{1}{4}$ T in $\nicefrac{1}{2}$ hour and so on.
+
+\item Find a plane in $\mathbb{R}^3$ whose graph runs trough the points (4,0,-1), (-2,-3,3), (5,4,-4).
+\textit{Hint:} The equation of a plane in $\mathbb{R}^3$ can be written as:
+\begin{equation*}
+A x + B y + Cz = 1
+\end{equation*}
+\end{enumerate}
+
+\end{document}

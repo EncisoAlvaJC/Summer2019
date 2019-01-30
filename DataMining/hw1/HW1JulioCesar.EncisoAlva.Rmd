@@ -1,0 +1,255 @@
+---
+title: "Homework 1"
+author: "Julio Cesar Enciso-Alva"
+date: "January XX, 2019"
+output:
+  pdf_document:
+    latex_engine: xelatex
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require('magrittr')
+require('dplyr')
+require('data.table')
+```
+
+**Note:** This documents uses the package `magrittr`, `dplyr` and `data.table`. It also uses the files `DistMat.csv`, distance matrix from question 3, and `T11-9.txt`, local copy of `cereal` database.
+
+## Question 1
+
+### a)
+
+The multiplication will be calculated using the matrix product operator `%*%`.
+In order to do that, the given matrices are saved to the variables `A` and `B`.
+
+```{r}
+A = matrix(c(7,9,20, 2,4,10),ncol=3)
+B = matrix(c(1,7,12,40, 2,8,13,20, 3,9,14,21),ncol=4)
+```
+
+Then, the multiplication is calculated and displayed.
+
+```{r}
+A.B = A %*% B
+A.B
+```
+
+### b)
+
+The matrix $G$ will be constructed using the spectral decomposition of $A$; if we have an ortonormal matrix $C$ and a diagonal matrix $D$ such that 
+
+\[
+A = C D C'
+\]
+
+then its *square root* can be constructed (and will be proposed as the solution) using the following expression
+\[
+G = C D^\frac{1}{2} C'
+\]
+
+As the first step for doing so, the matrix $A$ is saved to the variable `A`.
+
+```{r}
+A = matrix(c(2,1,0, 1,2,0, 0,0,2),ncol=3)
+```
+
+The spectral decomposition of $A$ is found using the function `base::eigen`. It is important to recall that the matrices $C$ and $D$ such that $A = C D C'$ can be constructed as
+
+\begin{align*}
+C &= [x_1,x_2,x_3] \\
+D &= \textrm{diag}(\lambda_1,\lambda_2,\lambda_3)
+\end{align*}
+
+where $x_i$ are the eigenvectors of $A$, and $\lambda_i$ are their corresponding eigenvalues.
+Both values are saved to the variable `SD`.
+
+```{r}
+SD = eigen(A)
+C = SD$vectors
+D = diag(SD$values)
+```
+
+The matrix G, the **proposed solution**, is constructed as described before:
+
+```{r}
+G = C %*% sqrt(D) %*% t(C)
+G
+```
+
+In order to verify that $G^2=A$, both $G^2$ and $A$ are displayed
+
+```{r}
+A
+```
+
+```{r}
+G %*% G
+```
+
+### c)
+
+The expression requested is
+\[
+\Phi(x) = \int_{-\infty}^x \frac{1}{\sqrt{2\pi}} e^{-\frac{z^2}{2}}\, dz
+\]
+
+## Question 2
+
+To perform the clusterings, the given distance matrix was saved on the file `DistMat.csv`; the data is then loaded and saved to the variable `d`.
+For ease of use, only the lower half of the matrix is in the file.
+
+```{r}
+d = read.csv('./DistMat.csv',header=F) %>%
+  as.matrix() %>% as.dist()
+```
+
+The dendrograms are generated using the function `stats::hclust`, changing the method of clustering. 
+
+```{r out.height='80%',echo=FALSE}
+d %>% stats::hclust(method='single') %>% plot(sub=NA,main='Dendrogram using Single linking')
+```
+
+```{r out.height='80%',echo=FALSE}
+d %>% stats::hclust(method='complete') %>% plot(sub=NA,main='Dendrogram using Complete linking')
+```
+
+```{r out.height='80%',echo=FALSE}
+d %>% stats::hclust(method='average') %>% plot(sub=NA,main='Dendrogram with Average linking')
+```
+
+The three dendrograms have the same structure, but the nodes have different heights. This indicates that the clusters are robust.
+
+## Question 3
+
+The dataset `cereal` is loaded from a local copy using the suggested code; the column names are also read from a file. The variables `Manufacturer` and `Group are dropped`.
+
+```{r include=FALSE}
+cereal = fread("./T11-9.txt", data.table = F)
+colnames(cereal) = scan(what="character", n=11, file='ColumnNames.txt')
+
+rownames(cereal) = cereal[,1]
+cereal = cereal[,-1]
+
+cereal = colnames(cereal) %>% setdiff(c('Manufacturer','Group')) %>% cereal[.]
+```
+
+### a)
+
+The distance between vectors is calculated using the function `stats::dist` and saved to the variable `d`.
+
+```{r}
+d = stats::dist(cereal, method='euclidean')
+```
+
+### b)
+
+The clustering is achieved using the funcion `stats::hclust`, using different methods.
+
+```{r out.height='350%', echo=FALSE}
+d %>% stats::hclust(method='single') %>% plot(sub=NA,main='Dendrogram using Single linking')
+```
+
+```{r out.height='350%',echo=FALSE}
+d %>% stats::hclust(method='centroid') %>% plot(sub=NA,main='Dendrogram using Centroid linking')
+```
+
+The clusters differ with the two methods. There are inversions on the *centroid* clustering, possible related to ~~healthy~~ low-sugar cereals. This difference can be explained by the effect of the variables `Calories`, `Sodium` and `Potassium`; those variables have very high values because of the scale.
+
+## Question 4
+
+The dataset `cereal` is loaded from a local copy using the suggested code; the column names are also read from a file. The variables `Manufacturer` and `Group` are dropped. **Note:** This process was done in *Question 3*, but is done again to keep the code independent.
+
+```{r include=FALSE}
+cereal = fread("./T11-9.txt", data.table = F)
+colnames(cereal) = scan(what="character", n=11, file='ColumnNames.txt')
+
+rownames(cereal) = cereal[,1]
+cereal = cereal[,-1]
+
+cereal = colnames(cereal) %>% setdiff(c('Manufacturer','Group')) %>% cereal[.]
+```
+
+The K-means clustering is done using the function `stats::kmeans`, and saved to a table.
+
+```{r}
+set.seed(1)
+K2 = kmeans(cereal,centers=2)$cluster
+K3 = kmeans(cereal,centers=3)$cluster
+```
+
+## Question 5
+
+The required vector is generated and saved to the variable `x`, and then the required tasks are completed.
+
+```{r, include=FALSE}
+set.seed(1) 
+x = rnorm(10000)
+```
+
+### a)
+
+There are
+`r length( x[ -2<x & x<2 ] )`
+values in `x` between -2 and 2.
+This value was calculated using the following code
+
+```{r,eval=FALSE}
+length( x[ -2<x & x<2 ] )
+```
+
+### b)
+
+The indexes of `x`, whose values lie are on the set $(-\infty,-3]\cup[3,\infty)$, are saved to the variable `IND` and displayed.
+
+```{r}
+IND = c( which(x<=-3 | x>=3) )
+IND
+```
+
+### c)
+
+The histogram is constructed using the function `hist`.
+
+```{r,echo=FALSE}
+hist(x)
+abline(v=median(x),lty=2,lwd=3,col='red')
+```
+
+## Question 6
+
+The dataset `cereal` is loaded from a local copy using the suggested code; the column names are also read from a file. The variable `Group` is dropped. 
+
+**Note:** This process was done in *Question 3* and *Question 4*, but is done again to keep the code independent, and also because variable `Manufacturer` is not dropped in this question.
+
+```{r include=FALSE}
+cereal = fread("./T11-9.txt", data.table = F)
+colnames(cereal) = scan(what="character", n=11, file='ColumnNames.txt')
+
+rownames(cereal) = cereal[,1]
+cereal = cereal[,-1]
+
+cereal = colnames(cereal) %>% setdiff(c('Group')) %>% cereal[.]
+```
+
+### a)
+
+The table of means is constructed using the following code, and the displayed.
+
+```{r}
+cereal %>%
+  dplyr::filter( Protein>=3 & Sugar<=9 ) %>%
+  dplyr::group_by(Manufacturer) %>%
+  dplyr::summarize(Mean_Calories=mean(Calories)) %>%
+  knitr::kable()
+```
+
+### b)
+
+The variable `Healthy` is constructed using the following code:
+
+```{r}
+cereal$Healthy = 1*(cereal$Protein>=3 & cereal$Sugar<=9)
+```
